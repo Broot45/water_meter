@@ -220,3 +220,89 @@ send.clear()
 
 #=========================== Запись показаний завершена ===============================
 
+# Изменение весов
+
+# Базовые данные
+adress = 154
+newWht1f = float(10.0)
+newWht2f = float(10.0)
+newWht3f = float(10.0)
+
+C_sth = [1, 10, 215, 35, 60, 0, 0, 192, 64, 0, 0, 128, 63, 1, 0, 0, 128, 63, 6] # Последовательность неизвестного назначения, нужна при записи весов
+C_open_weight = [1, 0, 0, 0, 0, 0, 36, 116, 73] # Открытие переменной, хранящей весы
+C_close_weight = [3, 0, 0, 0, 0, 6] # Закрытие переменной, хранящей весы
+
+
+
+send = [] # Обьявление начала сеанса записи
+send.append(adress)
+send.extend(C_Write)
+send.extend(C_Write_open)
+Transmit(send) # Принимать значение не требуется
+send.clear()
+
+
+temp = []
+send = [] # Обьявление начала сеанса записи
+send.append(adress)
+send.extend(C_Write)
+send.extend([21, 7, 0, 76, 152]) #Адрес регистра, количество регистров, и количество байт, отправляемых для изменения весов
+send.extend(C_sth)
+send.extend(C_open_weight)
+
+temp = FloatToHEX(newWht1f) # Вес №1
+#temp.reverse()
+send.extend(temp)
+temp.clear()
+
+send.extend(C_close_weight)
+send.extend(C_open_weight)
+
+temp = FloatToHEX(newWht2f) # Вес №2
+#temp.reverse()
+send.extend(temp)
+temp.clear()
+
+send.extend(C_close_weight)
+send.extend(C_open_weight)
+
+temp = FloatToHEX(newWht3f) # Вес №3
+#temp.reverse()
+send.extend(temp)
+temp.clear()
+
+send.extend(C_close_weight)
+send.extend(C_sth)
+send.extend(C_open_weight)
+
+temp = FloatToHEX(newWht1f) # Вес №1
+#temp.reverse()
+send.extend(temp)
+temp.clear()
+
+send.extend(C_close_weight)
+send.extend(C_open_weight)
+
+temp = FloatToHEX(newWht2f) # Вес №2
+#temp.reverse()
+send.extend(temp)
+temp.clear()
+
+send.extend(C_close_weight)
+send.extend(C_open_weight)
+
+temp = FloatToHEX(newWht3f) # Вес №3
+#temp.reverse()
+send.extend(temp)
+temp.clear()
+
+send.extend(C_close_weight)
+Transmit(send)
+send.clear()
+
+
+send.append(adress)
+send.extend(C_Write)
+send.extend(C_Write_close)
+Transmit(send)
+send.clear()
