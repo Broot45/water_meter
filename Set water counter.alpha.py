@@ -106,8 +106,8 @@ Transmit(send)
 send.clear()
 
 oldSet2 = [45, 3, 4, 204, 161, 149, 63, 86, 3] # 2D 03 04 CC A1 95 3F 56 03 = 1.169
-oldSet1 = get_Read(oldSet1)
-oldSet1.reverse()
+oldSet2 = get_Read(oldSet2)
+oldSet2.reverse()
 
 send.append(adress)
 send.extend(C_Read)
@@ -116,5 +116,7 @@ Transmit(send)
 send.clear()
 
 oldSet3 = [45, 3, 4, 65, 96, 101, 60, 40, 146] # 2D | 03 | 04 | 41 60 65 3C | 28 92 = 0.014
-oldSet1 = get_Read(oldSet1)
-oldSet1.reverse()
+oldSet3 = get_Read(oldSet3)
+oldSet3.reverse()
+
+print(oldSet2)

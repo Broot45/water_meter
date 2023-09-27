@@ -60,3 +60,17 @@ def CRC16(data: list): # Функция, вычисляющая контроль
     return crc # На выход получаем число, пе
 
 print(CRC16(oldSet2))
+
+test = [63, 149, 161, 204]
+
+def Merge(data: list):
+    data.reverse()
+    ret: int = 0
+
+    for frag in range(len(data)):
+        ret += data[frag] * (256 ** frag)
+
+    return ret
+
+print(Merge(test)) # 3F 95 A1 CC
+print(struct.unpack(">f", struct.pack("<I", Merge(test))))
