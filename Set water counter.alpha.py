@@ -1,15 +1,27 @@
+import csv
 import struct
+import serial
+ser = serial.Serial('/dev/ttyUSBx', 2400)
 
-#bytes in python suck
-Bips = {struct.pack("!B", n) : n for n in range(256)} # Поскольку питон у нас дохера умный, он любит переводить байты в char, поэтому, если попросить его вывести 32, переведённое в байтах - он выведет тебе ебучий пробел
-revBips = {n : struct.pack("!B", n) for n in range(256)} #Мог-бы быть и простым массивом, но для красоты пусть будет так, разницы всё-равно никакой
-#Эти два прекрасных массива сидят здесь для перевода кривого отображения питоновского байта в околочеловеческие, десятичные значения и обратно
+with open('some.csv', newline='') as f:
+    reader = csv.reader(f)
+    for row in reader:
+        print(row)
 
-adress = 45 #int(input("Введите адрес: "))
 
-newSet1 = float(120.0) #float(input("Введите новые показания счётчиков: "))
-newSet2 = float(40.0) #float(input("Введите новые показания счётчиков: "))
-newSet3 = float(3.0) #float(input("Введите новые показания счётчиков: "))
+
+
+
+
+
+
+
+
+adress = 45 # адрес
+
+newSet1 = float(120.0) # новые показания счётчиков
+newSet2 = float(40.0) # новые показания счётчиков
+newSet3 = float(3.0) # новые показания счётчиков
 
 
 #Данные, необходимые для записи
@@ -70,9 +82,10 @@ def Transmit(msg: list): # Составление контрольной сум�
     temp = CRC16(msg) # Вычисление контрольной суммы
     temp = CRC16_to_send(temp)
     msg.extend(temp)
-    print(send) # !!! Вместо печати поставитить отправку через порт !!!
-    ################################################### в эту строку поставить приём ответа, и выслать его через return, после пересмотреть все вызовы этой функции, и заменить способ вызова
+    ser.writelines(send)
+    ans = ser.readline()
     send.clear()
+    return ans
 
 def HEXtoFloat(data: list): # Получая на вход массив байт в прямом порядке, переводит его во Float
     data.reverse() # Для удобства вычислений переводим в обратный
@@ -102,20 +115,19 @@ send = [] # Лист для отправки байт
 send.append(adress)
 send.extend(C_Read)
 send.extend(C_Key_adr)
-Transmit(send)
-send.clear()
 
-Key = [45, 3, 8, 50, 51, 48, 56, 48, 50, 52, 53, 92, 164] # !!! В будущем эта строка должна принимать значение с порта !!! (адрес, команда, длина, сама инфа, CRC16, CRC16)
+Key = Transmit(send) # (адрес, команда, длина, сама инфа, CRC16, CRC16)
+send.clear()
 Key = get_Read(Key)
+
 
 # Сбор старых показаний
 send.append(adress)
 send.extend(C_Read)
 send.extend(С_oldSet_adr_1)
-Transmit(send)
-send.clear()
 
-oldSet1 = [45, 3, 4, 10, 215, 115, 64, 128, 209] # 2D 03 04 0A D7 73 40 80 D1 = 3.81
+oldSet1 = Transmit(send)
+send.clear()
 oldSet1 = get_Read(oldSet1) # Собираем полезные данные (Старые показания счётчика №1)
 oldSet1.reverse() # Поскольку они представлены в обратном порядке, возвращаем его к стандартному (в пределах этой программы)
 
@@ -123,20 +135,19 @@ oldSet1.reverse() # Поскольку они представлены в обр
 send.append(adress)
 send.extend(C_Read)
 send.extend(С_oldSet_adr_2)
-Transmit(send)
-send.clear()
 
-oldSet2 = [45, 3, 4, 204, 161, 149, 63, 86, 3] # 2D 03 04 CC A1 95 3F 56 03 = 1.169
+oldSet2 = Transmit(send)
+send.clear()
 oldSet2 = get_Read(oldSet2)
 oldSet2.reverse()
+
 
 send.append(adress)
 send.extend(C_Read)
 send.extend(С_oldSet_adr_3)
-Transmit(send)
-send.clear()
 
-oldSet3 = [45, 3, 4, 65, 96, 101, 60, 40, 146] # 2D | 03 | 04 | 41 60 65 3C | 28 92 = 0.014
+oldSet3 = Transmit(send)
+send.clear()
 oldSet3 = get_Read(oldSet3)
 oldSet3.reverse()
 
@@ -171,6 +182,7 @@ Transmit(send) # Принимать значение не требуется
 send.clear()
 
 send.append(adress) # Экземпляр записи
+send.extend(C_Write)
 send.extend(С_newSet_adr_1)
 send.extend(C_Key_len)
 send.extend(diffSet1)
@@ -188,6 +200,7 @@ Transmit(send) # Принимать значение не требуется
 send.clear()
 
 send.append(adress) # Экземпляр записи
+send.extend(C_Write)
 send.extend(С_newSet_adr_2)
 send.extend(C_Key_len)
 send.extend(diffSet2)
@@ -205,6 +218,7 @@ Transmit(send) # Принимать значение не требуется
 send.clear()
 
 send.append(adress) # Экземпляр записи
+send.extend(C_Write)
 send.extend(С_newSet_adr_3)
 send.extend(C_Key_len)
 send.extend(diffSet3)
@@ -223,7 +237,6 @@ send.clear()
 # Изменение весов
 
 # Базовые данные
-adress = 154
 newWht1f = float(10.0)
 newWht2f = float(10.0)
 newWht3f = float(10.0)
@@ -251,7 +264,6 @@ send.extend(C_sth)
 send.extend(C_open_weight)
 
 temp = FloatToHEX(newWht1f) # Вес №1
-#temp.reverse()
 send.extend(temp)
 temp.clear()
 
@@ -259,7 +271,6 @@ send.extend(C_close_weight)
 send.extend(C_open_weight)
 
 temp = FloatToHEX(newWht2f) # Вес №2
-#temp.reverse()
 send.extend(temp)
 temp.clear()
 
@@ -267,7 +278,6 @@ send.extend(C_close_weight)
 send.extend(C_open_weight)
 
 temp = FloatToHEX(newWht3f) # Вес №3
-#temp.reverse()
 send.extend(temp)
 temp.clear()
 
@@ -276,7 +286,6 @@ send.extend(C_sth)
 send.extend(C_open_weight)
 
 temp = FloatToHEX(newWht1f) # Вес №1
-#temp.reverse()
 send.extend(temp)
 temp.clear()
 
@@ -284,7 +293,6 @@ send.extend(C_close_weight)
 send.extend(C_open_weight)
 
 temp = FloatToHEX(newWht2f) # Вес №2
-#temp.reverse()
 send.extend(temp)
 temp.clear()
 
@@ -292,7 +300,6 @@ send.extend(C_close_weight)
 send.extend(C_open_weight)
 
 temp = FloatToHEX(newWht3f) # Вес №3
-#temp.reverse()
 send.extend(temp)
 temp.clear()
 
