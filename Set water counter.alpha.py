@@ -153,4 +153,70 @@ diffSet1.reverse() # Перевод в обратный порядок
 diffSet2.reverse()
 diffSet3.reverse()
 
+# Запись данных ==================================
+
+send = [] # Обьявление начала сеанса записи
+send.append(adress)
+send.extend(C_Write)
+send.extend(C_Write_open)
+Transmit(send) # Принимать значение не требуется
+send.clear()
+
+send.append(adress) # Обьявление начала экземпляра записи
+send.extend(C_Write)
+send.extend(C_Short_init)
+send.extend(C_Key_len)
+send.extend(Key)
+Transmit(send) # Принимать значение не требуется
+send.clear()
+
+send.append(adress) # Экземпляр записи
+send.extend(С_newSet_adr_1)
+send.extend(C_Key_len)
+send.extend(diffSet1)
+send.extend(Trm)
+Transmit(send)
+send.clear()
+
+
+send.append(adress) # Обьявление начала экземпляра записи
+send.extend(C_Write)
+send.extend(C_Short_init)
+send.extend(C_Key_len)
+send.extend(Key)
+Transmit(send) # Принимать значение не требуется
+send.clear()
+
+send.append(adress) # Экземпляр записи
+send.extend(С_newSet_adr_2)
+send.extend(C_Key_len)
+send.extend(diffSet2)
+send.extend(Trm)
+Transmit(send)
+send.clear()
+
+
+send.append(adress) # Обьявление начала экземпляра записи
+send.extend(C_Write)
+send.extend(C_Short_init)
+send.extend(C_Key_len)
+send.extend(Key)
+Transmit(send) # Принимать значение не требуется
+send.clear()
+
+send.append(adress) # Экземпляр записи
+send.extend(С_newSet_adr_3)
+send.extend(C_Key_len)
+send.extend(diffSet3)
+send.extend(Trm)
+Transmit(send)
+send.clear()
+
+
+send.append(adress)
+send.extend(C_Write_close)
+Transmit(send)
+send.clear()
+
+#=========================== Запись показаний завершена ===============================
 
