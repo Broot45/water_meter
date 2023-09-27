@@ -149,7 +149,7 @@ diffSet1 = FloatToHEX(newSet1 - oldSet1f) # В устройства подаёт
 diffSet2 = FloatToHEX(newSet2 - oldSet2f)
 diffSet3 = FloatToHEX(newSet3 - oldSet3f)
 
-diffSet1.reverse()
+diffSet1.reverse() # Перевод в обратный порядок
 diffSet2.reverse()
 diffSet3.reverse()
 
