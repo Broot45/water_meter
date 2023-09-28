@@ -3,11 +3,29 @@ import struct
 import serial
 ser = serial.Serial('/dev/ttyUSBx', 2400)
 
+with open('test.csv', newline = '') as a:
+    alarm = csv.reader(a)
+    print("Вы уверены, что хотите загрузить следущие профили?")
+    for aler in alarm:
+        print("Адрес:", aler[0])
+        print("Счётчики:")
+        print("\t1:", aler[1])
+        print("\t1:", aler[2])
+        print("\t1:", aler[3], end = "\n\n")
+        print("Веса импульсов: ")
+        print("\t1:", aler[4])
+        print("\t1:", aler[5])
+        print("\t1:", aler[6], end = "\n\n")
+
+    input("Для подтверждения нажмите Enter...")  
+
+    a.close()
+
 with open('test.csv', newline='') as f:
     reader = csv.reader(f)
+
     for base in reader:
         adress = int(base[0]) # адрес
-
         newSet1 = float(base[1]) # новые показания счётчиков
         newSet2 = float(base[2]) # новые показания счётчиков
         newSet3 = float(base[3]) # новые показания счётчиков
