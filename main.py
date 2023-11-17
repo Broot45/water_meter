@@ -333,22 +333,12 @@ with open(csvPath, newline='') as f:
         ser.close()
         ser = serial.Serial(PORT, 2400, timeout = 0.5)
         
-        # Базовые данные
-
-        if base[4] == None or base[4] == "" : newWht1f = None
-        else: newWht1f = float(base[4])
-        
-        if base[5] == None or base[5] == "": newWht2f = None
-        else: newWht2f = float(base[5]) 
-
-        if base[6] == None or base[6] == "": newWht3f = None
-        else: newWht3f = float(base[6])
 
         send = [] # Обьявление начала сеанса записи
         send.append(adress)
         send.extend(C_Write)
         send.extend(C_Write_open)
-        Transmit(send, 8) # Принимать значение не требуется
+        Transmit(send, 8)
         send.clear()
 
         send = [] #Чтение записи о весах
@@ -367,16 +357,28 @@ with open(csvPath, newline='') as f:
         oldWht2.reverse()
         oldWht3.reverse()
 
+        if base[4] == None or base[4] == "" : newWht1f = HEXtoFloat(oldWht1); oldWht1.reverse()
+        else: newWht1f = float(base[4])
+        
+        if base[5] == None or base[5] == "": newWht2f = HEXtoFloat(oldWht2); oldWht2.reverse()
+        else: newWht2f = float(base[5]) 
+
+        if base[6] == None or base[6] == "": newWht3f = HEXtoFloat(oldWht3); oldWht3.reverse()
+        else: newWht3f = float(base[6])
+
+
+
         log.write(f'Старое значение весов 1: {HEXtoFloat(oldWht1)}' + "\n")
-        log.write(f'Старое значение весов 2: {HEXtoFloat(oldWht1)}' + "\n")
-        log.write(f'Старое значение весов 3: {HEXtoFloat(oldWht1)}' + "\n")
-        print(f'Вес 1: {HEXtoFloat(oldWht1)}')
-        print(f'Вес 2: {HEXtoFloat(oldWht2)}')
-        print(f'Вес 3: {HEXtoFloat(oldWht3)}')
+        log.write(f'Старое значение весов 2: {HEXtoFloat(oldWht2)}' + "\n")
+        log.write(f'Старое значение весов 3: {HEXtoFloat(oldWht3)}' + "\n")
 
         oldWht1.reverse()
         oldWht2.reverse()
         oldWht3.reverse()
+
+        print(f'Вес 1: {HEXtoFloat(oldWht1)}')
+        print(f'Вес 2: {HEXtoFloat(oldWht2)}')
+        print(f'Вес 3: {HEXtoFloat(oldWht3)}')
 
         temp = []
         send = [] # Обьявление начала сеанса записи
@@ -387,25 +389,21 @@ with open(csvPath, newline='') as f:
         send.extend(C_open_weight)
 
         
-        if newWht1f == None: temp = oldWht1
-        else: temp = FloatToHEX(newWht1f) # Вес №1
+        temp = FloatToHEX(newWht1f) # Вес №1
         send.extend(temp)
         temp.clear()
 
         send.extend(C_close_weight)
         send.extend(C_open_weight)
 
-        if newWht2f == None: temp = oldWht2
-        else: temp = FloatToHEX(newWht2f) # Вес №2
-        temp.reverse()
+        temp = FloatToHEX(newWht2f) # Вес №2
         send.extend(temp)
         temp.clear()
 
         send.extend(C_close_weight)
         send.extend(C_open_weight)
 
-        if newWht3f == None: temp = oldWht3
-        else: temp = FloatToHEX(newWht3f) # Вес №3
+        temp = FloatToHEX(newWht3f) # Вес №3
         send.extend(temp)
         temp.clear()
 
@@ -413,25 +411,21 @@ with open(csvPath, newline='') as f:
         send.extend(C_sth)
         send.extend(C_open_weight)
 
-        if newWht1f == None: temp = oldWht1
-        else: temp = FloatToHEX(newWht1f) # Вес №1
+        temp = FloatToHEX(newWht1f) # Вес №1
         send.extend(temp)
         temp.clear()
 
         send.extend(C_close_weight)
         send.extend(C_open_weight)
 
-        if newWht2f == None: temp = oldWht2
-        else: temp = FloatToHEX(newWht2f) # Вес №2
-        temp.reverse()
+        temp = FloatToHEX(newWht2f) # Вес №2
         send.extend(temp)
         temp.clear()
 
         send.extend(C_close_weight)
         send.extend(C_open_weight)
 
-        if newWht1f == None: temp = oldWht1
-        else: temp = FloatToHEX(newWht3f) # Вес №3
+        temp = FloatToHEX(newWht3f) # Вес №3
         send.extend(temp)
         temp.clear()
 
