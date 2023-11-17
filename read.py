@@ -4,7 +4,7 @@ import time
 
 ser = serial.Serial('/dev/ttyUSB0', baudrate=2400, timeout = 0.5)
 
-adress = input("Адрес устройства: ")
+adress = int(input("Адрес устройства: "))
 
 
 
@@ -47,6 +47,8 @@ def read_from_port(lenght: int):
 
 
 def CRC16(data: list): # Функция, вычисляющая контрольную сумму по методу CRC16, контрольная сумма идёт в конце каждого пакета
+    for n in range(len(data)):
+        data[n] = int(data[n])
     poly = 0xa001 # На вход подаётся массив байт прямого порядка
     xor1 = 0x0000
     crc = 0xffff
@@ -172,10 +174,11 @@ oldSet1f = HEXtoFloat(oldSet1)
 oldSet2f = HEXtoFloat(oldSet2)
 oldSet3f = HEXtoFloat(oldSet3)
 
-
+print()
 print('Показания 1:', oldSet1f)
 print('Показания 2:', oldSet2f)
 print('Показания 3:', oldSet3f)
+print()
 
 send = [] #Чтение записи о весах
 send.append(adress)
@@ -194,6 +197,6 @@ oldWht2.reverse()
 oldWht3.reverse()
 
 
-print(f'Старое значение весов 1: {HEXtoFloat(oldWht1)}' + "\n")
-print(f'Старое значение весов 2: {HEXtoFloat(oldWht2)}' + "\n")
-print(f'Старое значение весов 3: {HEXtoFloat(oldWht3)}' + "\n")
+print("\n" + f'Старое значение весов 1: {HEXtoFloat(oldWht1)}')
+print(f'Старое значение весов 2: {HEXtoFloat(oldWht2)}')
+print(f'Старое значение весов 3: {HEXtoFloat(oldWht3)}')
