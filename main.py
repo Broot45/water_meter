@@ -4,8 +4,8 @@ import serial
 import time
 
 log = open("log.txt", "w")
-log.write("ID сеанса:" + str(int(time.time())))
-log.write("Время сеанса:" + time.asctime())
+log.write("ID сеанса:" + str(int(time.time())%1000000) + "\n") #6-и значный ID генерируется из последних 6-и цифр текущего времени в секундах с начала эпохи (ID проходит один круг каждые ~11 дней)
+log.write("Время сеанса:" + time.asctime() + "\n") # Часы могут быть неверными
 
 #ser = serial.Serial('/dev/ttyUSB0', 2400)
 PORT = '/dev/ttyUSB0' # Используемый порт, наименование порта для общения будет браться отсюда
@@ -112,7 +112,7 @@ with open(csvPath, newline='') as f:
             temp = CRC16_to_send(temp)
             msg.extend(temp)
             print("Master >>", toHumanHex(msg))
-            log.write("Master >>" + toHumanHex(msg))
+            log.write("Master >>" + toHumanHex(msg) + "\n")
 	    
             
 
@@ -121,8 +121,8 @@ with open(csvPath, newline='') as f:
             ans = []
             ans = read_from_port(lenght)
 
-            print("Master <<", toHumanHex(ans))
-            log.write("Master <<" + toHumanHex(ans))
+            print("Slave  >>", toHumanHex(ans))
+            log.write("Slave  >>" + toHumanHex(ans) + "\n")
             time.sleep(2)
             return ans
 	    
@@ -148,29 +148,29 @@ with open(csvPath, newline='') as f:
 
 
 
-        log.write("\n\n\n", "Адрес: " + base[0])
+        log.write("\n\n\n" + "Адрес: " + base[0] + "\n")
         print("\n\n\n", "Адрес:", base[0])
 
 
-        log.write("Счётчики:")
+        log.write("Счётчики:" + "\n")
         print("Счётчики:")
 
-        log.write("\t1: " + base[1])
+        log.write("\t1: " + base[1] + "\n")
         print("\t1:", base[1])
 
-        log.write("\t2: " + base[2])
+        log.write("\t2: " + base[2] + "\n")
         print("\t2:", base[2])
 
         log.write("\t3: " + base[3] + "\n\n")
         print("\t3:", base[3], end = "\n\n")
 
-        log.write("Веса импульсов: ")
+        log.write("Веса импульсов: " + "\n")
         print("Веса импульсов: ")
 
-        log.write("\t1: " + base[4])
+        log.write("\t1: " + base[4] + "\n")
         print("\t1:", base[4])
 
-        log.write("\t2: " + base[5])
+        log.write("\t2: " + base[5] + "\n")
         print("\t2:", base[5])
 
         log.write("\t3: " + base[6] + "\n\n")
@@ -198,7 +198,7 @@ with open(csvPath, newline='') as f:
         send.clear()
         Key = get_Read(Key)
 
-        log.write("Ключ для записи значений" + toHumanHex(Key))
+        log.write("Ключ для записи значений: " + toHumanHex(Key) + "\n")
         print("Key =", Key)
 
 
@@ -239,9 +239,9 @@ with open(csvPath, newline='') as f:
         oldSet2f = HEXtoFloat(oldSet2)
         oldSet3f = HEXtoFloat(oldSet3)
         
-        log.write("Старые показания 1: " + oldSet1f)
-        log.write("Старые показания 2: " + oldSet2f)
-        log.write("Старые показания 3: " + oldSet3f)
+        log.write("Старые показания 1: " + str(oldSet1f) + "\n")
+        log.write("Старые показания 2: " + str(oldSet2f) + "\n")
+        log.write("Старые показания 3: " + str(oldSet3f) + "\n")
         print('Показания 1:', oldSet1f)
         print('Показания 2:', oldSet2f)
         print('Показания 3:', oldSet3f)
@@ -327,7 +327,7 @@ with open(csvPath, newline='') as f:
 
         # #=========================== Запись показаний завершена ===============================
 
-        log.write("\n\nЗапись показаний завершена\n\nНачинается запись весов")
+        log.write("\n\nЗапись показаний завершена\n\nНачинается запись весов" + "\n")
 
         # Изменение весов
         ser.close()
@@ -335,13 +335,13 @@ with open(csvPath, newline='') as f:
         
         # Базовые данные
 
-        if base[4] == None or base[4] == "" : newWth1f = None
+        if base[4] == None or base[4] == "" : newWht1f = None
         else: newWht1f = float(base[4])
         
-        if base[5] == None or base[5] == "": newWth2f = None
+        if base[5] == None or base[5] == "": newWht2f = None
         else: newWht2f = float(base[5]) 
 
-        if base[6] == None or base[6] == "": newWth3f = None
+        if base[6] == None or base[6] == "": newWht3f = None
         else: newWht3f = float(base[6])
 
         send = [] # Обьявление начала сеанса записи
@@ -367,9 +367,9 @@ with open(csvPath, newline='') as f:
         oldWht2.reverse()
         oldWht3.reverse()
 
-        log.write(f'Старое значение весов 1: {HEXtoFloat(oldWht1)}')
-        log.write(f'Старое значение весов 2: {HEXtoFloat(oldWht1)}')
-        log.write(f'Старое значение весов 3: {HEXtoFloat(oldWht1)}')
+        log.write(f'Старое значение весов 1: {HEXtoFloat(oldWht1)}' + "\n")
+        log.write(f'Старое значение весов 2: {HEXtoFloat(oldWht1)}' + "\n")
+        log.write(f'Старое значение весов 3: {HEXtoFloat(oldWht1)}' + "\n")
         print(f'Вес 1: {HEXtoFloat(oldWht1)}')
         print(f'Вес 2: {HEXtoFloat(oldWht2)}')
         print(f'Вес 3: {HEXtoFloat(oldWht3)}')
@@ -397,6 +397,7 @@ with open(csvPath, newline='') as f:
 
         if newWht2f == None: temp = oldWht2
         else: temp = FloatToHEX(newWht2f) # Вес №2
+        temp.reverse()
         send.extend(temp)
         temp.clear()
 
@@ -422,6 +423,7 @@ with open(csvPath, newline='') as f:
 
         if newWht2f == None: temp = oldWht2
         else: temp = FloatToHEX(newWht2f) # Вес №2
+        temp.reverse()
         send.extend(temp)
         temp.clear()
 
@@ -478,9 +480,10 @@ with open(csvPath, newline='') as f:
         del newWht1f
 
         ser.close()
+        log.write("Сеанс записи завершен" + "-"*25 + "\n")
 
 
-log.write("Все сеансы записи успешно завершены")
+log.write("Все сеансы записи успешно завершены" + "\n" + "="*45 + "\n")
 log.close()
 
 
