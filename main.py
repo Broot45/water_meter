@@ -4,8 +4,8 @@ import serial
 import time
 
 log = open("log.txt", "w")
-log.write("ID сеанса:", int(time.time()))
-log.write("Время сеанса:", time.asctime())
+log.write("ID сеанса:" + str(int(time.time())))
+log.write("Время сеанса:" + time.asctime())
 
 #ser = serial.Serial('/dev/ttyUSB0', 2400)
 PORT = '/dev/ttyUSB0' # Используемый порт, наименование порта для общения будет браться отсюда
