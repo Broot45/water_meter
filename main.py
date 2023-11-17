@@ -112,6 +112,7 @@ with open(csvPath, newline='') as f:
             temp = CRC16_to_send(temp)
             msg.extend(temp)
             print("Master >>", toHumanHex(msg))
+            log.write("Master >>" + toHumanHex(msg))
 	    
             
 
@@ -121,6 +122,7 @@ with open(csvPath, newline='') as f:
             ans = read_from_port(lenght)
 
             print("Master <<", toHumanHex(ans))
+            log.write("Master <<" + toHumanHex(ans))
             time.sleep(2)
             return ans
 	    
@@ -333,14 +335,14 @@ with open(csvPath, newline='') as f:
         
         # Базовые данные
 
-        if base[4] != None: newWht1f = float(base[4])
-        else: newWth1f = None
+        if base[4] == None or base[4] == "" : newWth1f = None
+        else: newWht1f = float(base[4])
         
-        if base[5] != None: newWht2f = float(base[5])
-        else: newWth2f = None
+        if base[5] == None or base[5] == "": newWth2f = None
+        else: newWht2f = float(base[5]) 
 
-        if base[6] != None: newWht3f = float(base[6])
-        else: newWth3f = None
+        if base[6] == None or base[6] == "": newWth3f = None
+        else: newWht3f = float(base[6])
 
         send = [] # Обьявление начала сеанса записи
         send.append(adress)
