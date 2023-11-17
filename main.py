@@ -2,11 +2,16 @@ import csv
 import struct
 import serial
 import time
+
+log = open("log.txt", "w")
+log.write("ID сеанса:", int(time.time()))
+log.write("Время сеанса:", time.asctime())
+
 #ser = serial.Serial('/dev/ttyUSB0', 2400)
 PORT = '/dev/ttyUSB0' # Используемый порт, наименование порта для общения будет браться отсюда
+csvPath = 'value.csv' # Путь к csv файлу со списком указываемых данных
 
-
-with open('value.csv', newline='') as f:
+with open(csvPath, newline='') as f: 
     reader = csv.reader(f)
 
     for base in reader:
@@ -84,12 +89,29 @@ with open('value.csv', newline='') as f:
             stop = len(data) - 2
             return data[3:stop]
 
+        def toHumanHex(trans: list):
+
+            dic = {0: "0", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "A", 11: "B", 12: "C", 13: "D", 14: "E", 15: "F"}
+            line = ''
+
+            for n in trans:
+                two = dic[n % 16]
+                n //= 16
+                line += dic[n % 16]
+                line += two
+                line += " "
+
+            return line
+
+
+
+
         def Transmit(msg: list, lenght: int = 0): # Составление контрольной суммы и отправка пакета данных
             temp = [] # Временный массив
             temp = CRC16(msg) # Вычисление контрольной суммы
             temp = CRC16_to_send(temp)
             msg.extend(temp)
-            print(msg)
+            print("Master >>", toHumanHex(msg))
 	    
             
 
@@ -98,7 +120,7 @@ with open('value.csv', newline='') as f:
             ans = []
             ans = read_from_port(lenght)
 
-            print(ans)
+            print("Master <<", toHumanHex(ans))
             time.sleep(2)
             return ans
 	    
@@ -124,16 +146,33 @@ with open('value.csv', newline='') as f:
 
 
 
-
+        log.write("\n\n\n", "Адрес: " + base[0])
         print("\n\n\n", "Адрес:", base[0])
+
+
+        log.write("Счётчики:")
         print("Счётчики:")
+
+        log.write("\t1: " + base[1])
         print("\t1:", base[1])
-        print("\t1:", base[2])
-        print("\t1:", base[3], end = "\n\n")
+
+        log.write("\t2: " + base[2])
+        print("\t2:", base[2])
+
+        log.write("\t3: " + base[3] + "\n\n")
+        print("\t3:", base[3], end = "\n\n")
+
+        log.write("Веса импульсов: ")
         print("Веса импульсов: ")
+
+        log.write("\t1: " + base[4])
         print("\t1:", base[4])
-        print("\t1:", base[5])
-        print("\t1:", base[6], end = "\n\n")
+
+        log.write("\t2: " + base[5])
+        print("\t2:", base[5])
+
+        log.write("\t3: " + base[6] + "\n\n")
+        print("\t3:", base[6], end = "\n\n")
 
         adress = int(base[0]) # адрес
         newSet1 = float(base[1]) # новые показания счётчиков
@@ -141,7 +180,7 @@ with open('value.csv', newline='') as f:
         newSet3 = float(base[3]) # новые показания счётчиков
 
 
-        
+        log.write("\n\n\nНачало сеанса записи\n\n")
 
 
         # Подготовка данных к записи ==============================
@@ -156,6 +195,8 @@ with open('value.csv', newline='') as f:
         Key = Transmit(send, 13) # (адрес, команда, длина, сама инфа, CRC16, CRC16)
         send.clear()
         Key = get_Read(Key)
+
+        log.write("Ключ для записи значений" + toHumanHex(Key))
         print("Key =", Key)
 
 
@@ -196,6 +237,9 @@ with open('value.csv', newline='') as f:
         oldSet2f = HEXtoFloat(oldSet2)
         oldSet3f = HEXtoFloat(oldSet3)
         
+        log.write("Старые показания 1: " + oldSet1f)
+        log.write("Старые показания 2: " + oldSet2f)
+        log.write("Старые показания 3: " + oldSet3f)
         print('Показания 1:', oldSet1f)
         print('Показания 2:', oldSet2f)
         print('Показания 3:', oldSet3f)
@@ -203,12 +247,6 @@ with open('value.csv', newline='') as f:
         diffSet1 = FloatToHEX(newSet1 - oldSet1f) # В устройства подаётся разность старого и нового значений, в следствие чего этот фрагмент имеет место быть
         diffSet2 = FloatToHEX(newSet2 - oldSet2f)
         diffSet3 = FloatToHEX(newSet3 - oldSet3f)
-
-        temp = diffSet1
-        temp.reverse()
-        
-        print('Разница показаний 1:', HEXtoFloat(temp))
-        del temp
 
         
 
@@ -287,15 +325,22 @@ with open('value.csv', newline='') as f:
 
         # #=========================== Запись показаний завершена ===============================
 
+        log.write("\n\nЗапись показаний завершена\n\nНачинается запись весов")
+
         # Изменение весов
         ser.close()
         ser = serial.Serial(PORT, 2400, timeout = 0.5)
         
         # Базовые данные
-        newWht1f = float(base[4])
-        newWht2f = float(base[5])
-        newWht3f = float(base[6])
 
+        if base[4] != None: newWht1f = float(base[4])
+        else: newWth1f = None
+        
+        if base[5] != None: newWht2f = float(base[5])
+        else: newWth2f = None
+
+        if base[6] != None: newWht3f = float(base[6])
+        else: newWth3f = None
 
         send = [] # Обьявление начала сеанса записи
         send.append(adress)
@@ -313,12 +358,23 @@ with open('value.csv', newline='') as f:
         oldWht1 = mas_wht[31:35]
         oldWht2 = mas_wht[50:54]
         oldWht3 = mas_wht[69:73]
+
+
+
         oldWht1.reverse()
         oldWht2.reverse()
         oldWht3.reverse()
+
+        log.write(f'Старое значение весов 1: {HEXtoFloat(oldWht1)}')
+        log.write(f'Старое значение весов 2: {HEXtoFloat(oldWht1)}')
+        log.write(f'Старое значение весов 3: {HEXtoFloat(oldWht1)}')
         print(f'Вес 1: {HEXtoFloat(oldWht1)}')
         print(f'Вес 2: {HEXtoFloat(oldWht2)}')
         print(f'Вес 3: {HEXtoFloat(oldWht3)}')
+
+        oldWht1.reverse()
+        oldWht2.reverse()
+        oldWht3.reverse()
 
         temp = []
         send = [] # Обьявление начала сеанса записи
@@ -328,21 +384,25 @@ with open('value.csv', newline='') as f:
         send.extend(C_sth)
         send.extend(C_open_weight)
 
-        temp = FloatToHEX(newWht1f) # Вес №1
+        
+        if newWht1f == None: temp = oldWht1
+        else: temp = FloatToHEX(newWht1f) # Вес №1
         send.extend(temp)
         temp.clear()
 
         send.extend(C_close_weight)
         send.extend(C_open_weight)
 
-        temp = FloatToHEX(newWht2f) # Вес №2
+        if newWht2f == None: temp = oldWht2
+        else: temp = FloatToHEX(newWht2f) # Вес №2
         send.extend(temp)
         temp.clear()
 
         send.extend(C_close_weight)
         send.extend(C_open_weight)
 
-        temp = FloatToHEX(newWht3f) # Вес №3
+        if newWht3f == None: temp = oldWht3
+        else: temp = FloatToHEX(newWht3f) # Вес №3
         send.extend(temp)
         temp.clear()
 
@@ -350,21 +410,24 @@ with open('value.csv', newline='') as f:
         send.extend(C_sth)
         send.extend(C_open_weight)
 
-        temp = FloatToHEX(newWht1f) # Вес №1
+        if newWht1f == None: temp = oldWht1
+        else: temp = FloatToHEX(newWht1f) # Вес №1
         send.extend(temp)
         temp.clear()
 
         send.extend(C_close_weight)
         send.extend(C_open_weight)
 
-        temp = FloatToHEX(newWht2f) # Вес №2
+        if newWht2f == None: temp = oldWht2
+        else: temp = FloatToHEX(newWht2f) # Вес №2
         send.extend(temp)
         temp.clear()
 
         send.extend(C_close_weight)
         send.extend(C_open_weight)
 
-        temp = FloatToHEX(newWht3f) # Вес №3
+        if newWht1f == None: temp = oldWht1
+        else: temp = FloatToHEX(newWht3f) # Вес №3
         send.extend(temp)
         temp.clear()
 
@@ -415,7 +478,8 @@ with open('value.csv', newline='') as f:
         ser.close()
 
 
-
+log.write("Все сеансы записи успешно завершены")
+log.close()
 
 
 
