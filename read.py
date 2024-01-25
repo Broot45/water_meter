@@ -1,12 +1,27 @@
 import struct
 import serial
 import time
+import sys
+from floor import fl0 as AddrMap
 
 ser = serial.Serial('/dev/ttyUSB0', baudrate=2400, timeout = 0.5)
 
-adress = int(input("Адрес устройства: "))
+adress = int(input("Номер квартиры: "))
 
+tempAddr = adress # Номер квартиры
+finded = False
 
+for Apart in AddrMap:
+    if Apart[2] == tempAddr: # Если номер квартиры совпадает с каким-либо из списка
+        adress = Apart[0] # Берётся соответственный адрес устройства
+        finded = True
+
+if not finded: 
+    print("Адрес квартиры №", tempAddr,  "не был найден в списке")
+    sys.exit(404)
+
+del finded
+del tempAddr
 
 C_Read = [3] # Код для чтения регистра
 C_Write = [16] # Код для записи регистра

@@ -2,6 +2,7 @@ import csv
 import struct
 import serial
 import time
+from floor import fl0 as AddrMap
 
 log = open("log.txt", "w")
 log.write("ID сеанса:" + str(int(time.time())%1000000) + "\n") #6-и значный ID генерируется из последних 6-и цифр текущего времени в секундах с начала эпохи (ID проходит один круг каждые ~11 дней)
@@ -163,7 +164,20 @@ with open(csvPath, newline='') as f:
             data.reverse() # Переводим в прямой порядок (для удобства понимания)
             return data
 
+        tempAddr = base[0] # Номер квартиры
+        finded = False
 
+        for Apart in AddrMap:
+            if Apart[2] == tempAddr: # Если номер квартиры совпадает с каким-либо из списка
+                base[0] = Apart[0] # Берётся соответственный адрес устройства
+                finded = True
+
+        if not finded: 
+            print("Адрес квартиры №", tempAddr,  "не был найден в списке")
+            continue
+        
+        del finded
+        del tempAddr
 
         log.write("\n\n\n" + "Адрес: " + base[0] + "\n")
         print("\n\n\n", "Адрес:", base[0])
