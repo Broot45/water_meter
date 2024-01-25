@@ -44,17 +44,32 @@ with open(csvPath, newline='') as f:
 
 
 
-        def read_from_port(lenght: int):
-            mas = []
-            while lenght > 0:
+        def read_from_port(lenght): # Ахтунг, в функции не предусмотрена защита от некорректных данных
+
+            # Все условия подразумевают исправную работу счётчиков, сети, и самой программы в целом...
+            # ...Если потребуется это исправить - можно засунуть всю функцию в try, и при любой ошибке, вместо чтения, просто... 
+            # ...открывать и закрывать порт, понадеявшись, что в данный момент ответ был нам не сильно нужен
+
+            if (not (type(lenght) is int) and (lenght != None)): return [None] # Отсев некорректных значений
+
+            mas = [] # Массив первичных значений, содержит элементы типа byte, обращаться с сторожностью, поскольку питон любит их переводить в хуйню без спросу
+            
+            if lenght == None: # Если значение не установлено (по умолчанию None), функция сама из содержания вычислит, сколько нужно прочесть
+                for n in "12345": mas.append(ser.read()) # Читаем первые пять байт, которые гарантированно будут присутствовать в корректном ответе
+                if struct.unpack('<B', mas[1])[0] == 16: lenght = 3 # Если ответ на команду записи, то мы читаем 5 + 3 байта, сообщение об успешной записи
+                elif struct.unpack('<B', mas[1])[0] == 3: lenght = struct.unpack('<B', mas[2])[0] # Если ответ на команду чтения, то мы читаем 5 байт системной информации (адрес, команда, $Количество и два байта CRC16), + $Количество
+
+            while lenght > 0: # Дочитываем $Оставшееся количество байт (если число было фиксированным, то $Оставшееся = $Необходимое)
                 mas.append(ser.read())
                 lenght -= 1
             
-            ans = []
+            ans = [] # Массив вторичных, готовых к отправке значений
             for n in mas:
-                ans.append(struct.unpack('<B', n)[0])
+                ans.append(struct.unpack('<B', n)[0]) # Перевод первичного значения во вторичное
             
             return ans
+            
+
 
 
         def CRC16(data: list): # Функция, вычисляющая контрольную сумму по методу CRC16, контрольная сумма идёт в конце каждого пакета
@@ -91,6 +106,8 @@ with open(csvPath, newline='') as f:
 
         def toHumanHex(trans: list):
 
+            if trans[0] == None: return "None"
+
             dic = {0: "0", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "A", 11: "B", 12: "C", 13: "D", 14: "E", 15: "F"}
             line = ''
 
@@ -106,7 +123,7 @@ with open(csvPath, newline='') as f:
 
 
 
-        def Transmit(msg: list, lenght: int = 0): # Составление контрольной суммы и отправка пакета данных
+        def Transmit(msg: list, lenght = None): # Составление контрольной суммы и отправка пакета данных
             temp = [] # Временный массив
             temp = CRC16(msg) # Вычисление контрольной суммы
             temp = CRC16_to_send(temp)
@@ -123,7 +140,7 @@ with open(csvPath, newline='') as f:
 
             print("Slave  >>", toHumanHex(ans))
             log.write("Slave  >>" + toHumanHex(ans) + "\n")
-            time.sleep(2)
+            time.sleep(0.5)
             return ans
 	    
         def HEXtoFloat(data: list): # Получая на вход массив байт в прямом порядке, переводит его во Float
@@ -175,7 +192,7 @@ with open(csvPath, newline='') as f:
 
         log.write("\t3: " + base[6] + "\n\n")
         print("\t3:", base[6], end = "\n\n")
-
+        print ('base[0]', base[0]) 
         adress = int(base[0]) # адрес
         newSet1 = float(base[1]) # новые показания счётчиков
         newSet2 = float(base[2]) # новые показания счётчиков
@@ -194,7 +211,7 @@ with open(csvPath, newline='') as f:
         send.extend(C_Key_adr)
 
         Key = []
-        Key = Transmit(send, 13) # (адрес, команда, длина, сама инфа, CRC16, CRC16)
+        Key = Transmit(send) # (адрес, команда, длина, сама инфа, CRC16, CRC16)
         send.clear()
         Key = get_Read(Key)
 
@@ -208,7 +225,7 @@ with open(csvPath, newline='') as f:
         send.extend(С_oldSet_adr_1)
         
         oldSet1 = []
-        oldSet1 = Transmit(send, 9)
+        oldSet1 = Transmit(send)
         send.clear()
         oldSet1 = get_Read(oldSet1) # Собираем полезные данные (Старые показания счётчика №1)
         oldSet1.reverse() # Поскольку они представлены в обратном порядке, возвращаем его к стандартному (в пределах этой программы)
@@ -219,7 +236,7 @@ with open(csvPath, newline='') as f:
         send.extend(С_oldSet_adr_2)
 
         oldSet2 = []
-        oldSet2 = Transmit(send, 9)
+        oldSet2 = Transmit(send)
         send.clear()
         oldSet2 = get_Read(oldSet2)
         oldSet2.reverse()
@@ -230,7 +247,7 @@ with open(csvPath, newline='') as f:
         send.extend(С_oldSet_adr_3)
 
         oldSet3 = []
-        oldSet3 = Transmit(send, 9)
+        oldSet3 = Transmit(send)
         send.clear()
         oldSet3 = get_Read(oldSet3)
         oldSet3.reverse()
@@ -338,7 +355,7 @@ with open(csvPath, newline='') as f:
         send.append(adress)
         send.extend(C_Write)
         send.extend(C_Write_open)
-        Transmit(send, 8)
+        Transmit(send)
         send.clear()
 
         send = [] #Чтение записи о весах
@@ -346,7 +363,7 @@ with open(csvPath, newline='') as f:
         send.extend(C_Read)
         send.extend([21, 7, 0, 1])
         mas_wht = []
-        mas_wht = Transmit(send, 100)
+        mas_wht = Transmit(send)
         oldWht1 = mas_wht[31:35]
         oldWht2 = mas_wht[50:54]
         oldWht3 = mas_wht[69:73]
@@ -437,7 +454,7 @@ with open(csvPath, newline='') as f:
         send.append(adress)
         send.extend(C_Write)
         send.extend(C_Write_close)
-        Transmit(send, 8)
+        Transmit(send)
         send.clear()
 
         # Очистка переменных
@@ -479,11 +496,3 @@ with open(csvPath, newline='') as f:
 
 log.write("Все сеансы записи успешно завершены" + "\n" + "="*45 + "\n")
 log.close()
-
-
-
-
-
-
-
-
