@@ -9,10 +9,14 @@ shortAddr = int(input("Краткое обращение: ")) # Краткий �
 
 #ser = serial.Serial(PORT, baudrate=2400, timeout = 0.5) # Открытие порта с частотой и таймаутом
 
-C_OpenFullAddr = [16, 64, 253, 61, 22, 104, 11, 11, 104] # 10 40 FD 3D 16 68 0B 0B 68
-C_FullAddrPre = [67, 253, 82]
-C_FullAddrPost = [255, 255, 255, 255]
-C_Term = [22]
+C_Border = [16, 64, 253, 61, 22]
+C_OpenFullAddr = [104, 11, 11, 104] # 10 40 FD 3D 16 68 0B 0B 68 # Первая часть обращения по полному адресу, не учавствующая в вычислении контрольной суммы
+C_FullAddrPre = [67, 253, 82] # Часть, учавствующая в контрольной сумме, следующая перед полным адресом
+C_FullAddrPost = [255, 255, 255, 255] # Часть, учавствующая в контрольной сумме, следующая после полного адреса
+C_Term = [22] # Терминатор обращений
+C_OpenShortAddr = [104, 6, 6, 104]
+C_ShortAddrPre = [67, 253, 81, 1, 122]
+
 
 # Скопированный блок, в данном случае в качестве параметра lenght передаётся int длины, поскольку автовычисление не сработает
 def read_from_port(lenght): # Ахтунг, в функции не предусмотрена защита от некорректных данных
@@ -103,7 +107,7 @@ def HumanDecInHex(decmas: list):
     return hexmas
       
 
-# Обращение по первому адресу
+# Обращение по полному адресу
 
 SendedFullAddr = [] # Преобразование полного адреса в готовый к отправке вид
 while fullAddr > 0:
@@ -116,10 +120,25 @@ Control.extend(C_FullAddrPre)
 Control.extend(HumanDecInHex(SendedFullAddr))
 Control.extend(C_FullAddrPost)
 Control.append(Checksum(Control))
-
 Send = []
+Send.extend(C_Border)
 Send.extend(C_OpenFullAddr)
 Send.extend(Control)
 Send.extend(C_Term)
 print(toHumanHex(Send))
 
+# Присвоение краткого адреса
+Control = [] 
+Control.extend(C_ShortAddrPre)
+Control.append(shortAddr)
+Control.append(Checksum(Control))
+Send = []
+Send.extend(C_OpenShortAddr)
+Send.extend(Control)
+Send.extend(C_Term)
+print(toHumanHex(Send))
+
+# Применение изменений
+Send = []
+Send.extend(C_Border)
+print(toHumanHex(Send))
