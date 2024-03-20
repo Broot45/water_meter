@@ -7,7 +7,7 @@ PORT = '/dev/ttyUSB0' # Порт общения с платой
 fullAddr = int(input("Полный адрес: ")) # Полный адрес счётчика, 8 цифр
 shortAddr = int(input("Краткое обращение: ")) # Краткий адрес, по которому общаются остальные программы, 0-247
 
-#ser = serial.Serial(PORT, baudrate=2400, timeout = 0.5) # Открытие порта с частотой и таймаутом
+ser = serial.Serial(PORT, baudrate=2400, timeout = 0.5) # Открытие порта с частотой и таймаутом
 
 C_Border = [16, 64, 253, 61, 22]
 C_OpenFullAddr = [104, 11, 11, 104] # 10 40 FD 3D 16 68 0B 0B 68 # Первая часть обращения по полному адресу, не учавствующая в вычислении контрольной суммы
@@ -66,10 +66,10 @@ def toHumanHex(trans: list): # Перевод последовательност
             return line
 
 def Transmit(msg: list, lenght = None): # Составление контрольной суммы и отправка пакета данных
-        temp = [] # Временный массив
+        #temp = [] # Временный массив
         #temp = CRC16(msg) # Вычисление контрольной суммы
         #temp = CRC16_to_send(temp)
-        msg.extend(temp)
+        #msg.extend(temp)
         print("Master >>", toHumanHex(msg))
     
         
@@ -125,7 +125,8 @@ Send.extend(C_Border)
 Send.extend(C_OpenFullAddr)
 Send.extend(Control)
 Send.extend(C_Term)
-print(toHumanHex(Send))
+Transmit(Send, 1)
+#print(toHumanHex(Send))
 
 # Присвоение краткого адреса
 Control = [] 
@@ -136,9 +137,11 @@ Send = []
 Send.extend(C_OpenShortAddr)
 Send.extend(Control)
 Send.extend(C_Term)
-print(toHumanHex(Send))
+Transmit(Send, 1)
+#print(toHumanHex(Send))
 
 # Применение изменений
 Send = []
 Send.extend(C_Border)
-print(toHumanHex(Send))
+Transmit(Send, 1)
+#print(toHumanHex(Send))
